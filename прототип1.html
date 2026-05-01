@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="manifest" href="manifest.json">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>попытка38</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #222; font-family: sans-serif; }
+        canvas { display: block; background: #5c94fc; margin: 0 auto; border-bottom: 5px solid #4e3524; }
+        .controls { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: space-around; padding: 0 20px; box-sizing: border-box; }
+        .btn { width: 70px; height: 70px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; user-select: none; font-weight: bold; -webkit-tap-highlight-color: transparent; }
+        .btn:active { background: rgba(255,255,255,0.6); }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div class="controls">
+    <div style="display: flex; gap: 20px;">
+        <div class="btn" id="leftBtn">←</div>
+        <div class="btn" id="rightBtn">→</div>
+    </div>
+    <div class="btn" id="jumpBtn">JUMP</div>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight * 0.6;
+
+// Параметры игры
+let gravity = 0.8;
+let friction = 0.8;
+
+const player = {
+    x: 50,
+    y: canvas.height - 70,
+    width: 40,
+    height: 40,
+    speed: 5,
+    velX: 0,
+    velY: 0,
+    jumping: false,
+    color: "#ff2400"
+};
+
+const keys = {};
+
+  // Кнопочки
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
+const jumpBtn = document.getElementById("jumpBtn");
+
+function handleTouch() {
+    leftBtn.ontouchstart = () => keys[37] = true;
+    leftBtn.ontouchend = () => keys[37] = false;
+    rightBtn.ontouchstart = () => keys[39] = true;
+    rightBtn.ontouchend = () => keys[39] = false;
+    jumpBtn.ontouchstart = () => {
+        if (!player.jumping) {
+            player.velY = -15;
+            player.jumping = true;
+        }
+    };
+}
+
+function update() {
+    // Движение
+    if (keys[39]) { if (player.velX < player.speed) player.velX++; }
+    if (keys[37]) { if (player.velX > -player.speed) player.velX--; }
+
+    player.velX *= friction;
+    player.velY += gravity;
+
+    player.x += player.velX;
+    player.y += player.velY;
+
+    // Границы пола
+    if (player.y >= canvas.height - player.height) {
+        player.y = canvas.height - player.height;
+        player.jumping = false;
+    }
+
+    // Границы сбоку
+    if (player.x <= 0) player.x = 0;
+    if (player.x >= canvas.width - player.width) player.x = canvas.width - player.width;
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+  // Жалкое подобие марио
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+    
+    // Декор 
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(100, 50, 20, 0, Math.PI * 2);
+    ctx.arc(130, 50, 30, 0, Math.PI * 2);
+    ctx.arc(160, 50, 20, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+handleTouch();
+update();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
+</body>
+</html>
